@@ -1,11 +1,15 @@
-require 'rails_helper'
+require_relative '../check_possible'
+require_relative '../database_helper'
+
 
 RSpec.describe CheckPossible do
-  subject { described_class.new(delivery_created_time, courier_delivery_time) }
-
-  before do
-    Holiday.create day: Date.new(2019, 5, 12), kind: :non_working_sunday
+  include DatabaseHelper
+  before(:all) do
+    initialize_in_memory_database
+    DatabaseHelper::Holiday.create day: Date.new(2019, 5, 12), kind: :non_working_sunday
   end
+
+  subject { described_class.new(delivery_created_time, courier_delivery_time) }
 
   context 'order created at monday 08:29, for wednesday 22:29' do
     let(:delivery_created_time) { Time.new(2019, 5, 7, 8, 29, 0, '+02:00') }  # monday
@@ -62,8 +66,8 @@ RSpec.describe CheckPossible do
     it { expect(subject.call).to be_truthy }
   end
   context 'order created at sunday 16:59, for monday 05:01' do
-    let(:delivery_created_time) { Time.new(2020, 5, 2, 16, 59, 0, '+02:00') }
-    let(:courier_delivery_time) { Time.new(2020, 5, 4, 5, 1, 0, '+02:00') }
+    let(:delivery_created_time) { Time.new(2020, 5, 3, 16, 59, 0, '+02:00') }
+    let(:courier_delivery_time) { Time.new(2020, 5, 4, 5, 0o1, 0, '+02:00') }
 
     it { expect(subject.call).to be_falsey }
   end
